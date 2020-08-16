@@ -1,25 +1,117 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
 
 
+```{r}
+echo = TRUE 
 ## Loading and preprocessing the data
+setwd("C:\\data")
+activity_data <- read.csv("activity.csv", header=TRUE)
+```
 
 
-
+```{r}
 ## What is mean total number of steps taken per day?
+echo = TRUE 
+summary_data <- tapply(activity_data$steps, activity_data$date, sum, na.rm=TRUE)
+hist(summary_data, xlab = "Steps Per Day", main = "Histogram of Summarized Activity Data")
 
 
+mean_summary_data <- mean(summary_data, trim = 0) 
+mean_summary_data <- round(mean_summary_data, digits = 2)
+mean_summary_data
 
+median_summary_data <- median(summary_data, trim = 0) 
+median_summary_data <- round(median_summary_data, digits = 2)
+median_summary_data
+```
+
+```{r}
 ## What is the average daily activity pattern?
 
+echo = TRUE
+steps_interval_data <- aggregate(steps ~ interval, activity_data, mean)
+plot(steps_interval_data$interval,steps_interval_data$steps, type="l", xlab = "Interval", ylab = "Steps", col= "blue")
+```
 
-
+```{r}
 ## Imputing missing values
 
+echo = TRUE 
+na_activity_data <- !complete.cases(activity_data)
+sum_na_activity_data <- sum(na_activity_data)
+sum_na_activity_data
 
 
+loop_count <- 1
+num_records <- nrow(activity_data)
+num_records
+
+no_na_activity_data <- activity_data
+
+
+while (loop_count <= num_records) {
+  
+ steps <- activity_data$steps[loop_count]
+
+ if(is.na(steps)) {
+
+   interval_mean <- subset(steps_interval_data, interval == activity_data$interval[loop_count])  
+   no_na_activity_data$steps[loop_count] <- round(interval_mean$steps)
+ }
+   
+ loop_count <- loop_count +1
+ 
+}
+```
+
+```{r}
+## This is to verify there are no missing values for steps
+
+echo = TRUE 
+na_activity_data2 <- !complete.cases(no_na_activity_data)
+sum_na_activity_data2 <- sum(na_activity_data2)
+sum_na_activity_data2
+
+```
+
+
+
+
+```{r}
 ## Are there differences in activity patterns between weekdays and weekends?
+
+echo = TRUE 
+
+no_na_summary_data <- tapply(no_na_activity_data$steps, no_na_activity_data$date, sum)
+hist(no_na_summary_data, xlab = "Steps Per Day", main = "Histogram of Summarized Activity Data (no missing steps values)")
+
+# Mean with no missing steps values
+no_na_mean_summary_data <- mean(no_na_summary_data, trim = 0) 
+no_na_mean_summary_data <- round(no_na_mean_summary_data, digits = 2)
+no_na_mean_summary_data
+
+# Median with no missing steps values
+no_na_median_summary_data <- median(no_na_summary_data, trim = 0) 
+no_na_median_summary_data <- round(median_summary_data, digits = 2)
+no_na_median_summary_data
+
+# Median Diff
+median_diff <- no_na_median_summary_data - median_summary_data
+median_diff
+
+# Mean Diff
+mean_diff <- no_na_mean_summary_data - mean_summary_data
+mean_diff
+
+weekdays <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")
+              
+df_no_na_activity_data <- data.frame(no_na_activity_data)
+
+df_no_na_activity_data$day_of_week = as.factor(ifelse(is.element(weekdays(as.Date(df_no_na_activity_data $date)),weekdays), "Weekday", "Weekend"))
+
+agg_df_no_na_activity_data <- aggregate(steps ~ interval + day_of_week, df_no_na_activity_data, mean)
+
+library(lattice)
+xyplot(agg_df_no_na_activity_data$steps ~ agg_df_no_na_activity_data$interval|agg_df_no_na_activity_data$day_of_week, main="Average Steps per Day by Interval",xlab="Interval", ylab="Steps",layout=c(1,2), type="l")
+
+```
+
