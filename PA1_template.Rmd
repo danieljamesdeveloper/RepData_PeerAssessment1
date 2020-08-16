@@ -1,4 +1,11 @@
+---
+title: "Reproducible Research Week 2 Project"
+author: "Daniel Malson"
+date: "August 16th, 2020"
+output: html_document
+---
 
+## Loading and preprocessing the data
 
 ```{r}
 echo = TRUE 
@@ -7,22 +14,34 @@ setwd("C:\\data")
 activity_data <- read.csv("activity.csv", header=TRUE)
 ```
 
+## What is mean total number of steps taken per day?
 
 ```{r}
 ## What is mean total number of steps taken per day?
 echo = TRUE 
 summary_data <- tapply(activity_data$steps, activity_data$date, sum, na.rm=TRUE)
 hist(summary_data, xlab = "Steps Per Day", main = "Histogram of Summarized Activity Data")
+```
 
+The mean is:
 
+```{r}
+echo = TRUE 
 mean_summary_data <- mean(summary_data, trim = 0) 
 mean_summary_data <- round(mean_summary_data, digits = 2)
 mean_summary_data
+```
 
+The median is:
+
+```{r}
+echo = TRUE 
 median_summary_data <- median(summary_data, trim = 0) 
 median_summary_data <- round(median_summary_data, digits = 2)
 median_summary_data
 ```
+
+## What is the average daily activity pattern?
 
 ```{r}
 ## What is the average daily activity pattern?
@@ -32,6 +51,10 @@ steps_interval_data <- aggregate(steps ~ interval, activity_data, mean)
 plot(steps_interval_data$interval,steps_interval_data$steps, type="l", xlab = "Interval", ylab = "Steps", col= "blue")
 ```
 
+## Imputing missing values
+
+The number of records with missing steps:
+
 ```{r}
 ## Imputing missing values
 
@@ -39,8 +62,13 @@ echo = TRUE
 na_activity_data <- !complete.cases(activity_data)
 sum_na_activity_data <- sum(na_activity_data)
 sum_na_activity_data
+```
 
+Imput the missing values based interval:
 
+```{r}
+
+echo = TRUE 
 loop_count <- 1
 num_records <- nrow(activity_data)
 num_records
@@ -62,6 +90,8 @@ while (loop_count <= num_records) {
  
 }
 ```
+
+Verify that there are no missing values in the new data set: 
 
 ```{r}
 ## This is to verify there are no missing values for steps
@@ -93,15 +123,32 @@ no_na_mean_summary_data
 no_na_median_summary_data <- median(no_na_summary_data, trim = 0) 
 no_na_median_summary_data <- round(median_summary_data, digits = 2)
 no_na_median_summary_data
+```
+
+Median difference:
+
+```{r}
+echo = TRUE 
 
 # Median Diff
 median_diff <- no_na_median_summary_data - median_summary_data
 median_diff
+```
+
+
+Mean difference:
+
+```{r}
 
 # Mean Diff
 mean_diff <- no_na_mean_summary_data - mean_summary_data
 mean_diff
+```
 
+
+## Are there differences in activity patterns between weekdays and weekends?
+
+```{r}
 weekdays <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")
               
 df_no_na_activity_data <- data.frame(no_na_activity_data)
