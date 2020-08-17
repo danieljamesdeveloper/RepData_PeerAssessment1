@@ -1,0 +1,222 @@
+---
+title: "Reproducible Research Week 2 Project"
+author: "Daniel Malson"
+date: "August 16th, 2020"
+output: html_document
+---
+
+## Loading and preprocessing the data
+
+
+```r
+echo = TRUE 
+## Loading and preprocessing the data
+setwd("C:\\data")
+activity_data <- read.csv("activity.csv", header=TRUE)
+```
+
+## What is mean total number of steps taken per day?
+
+
+```r
+## What is mean total number of steps taken per day?
+echo = TRUE 
+summary_data <- tapply(activity_data$steps, activity_data$date, sum, na.rm=TRUE)
+hist(summary_data, xlab = "Steps Per Day", main = "Histogram of Summarized Activity Data")
+```
+
+<img src="PA1_template_files/figure-html/unnamed-chunk-2-1.png" width="672" />
+
+The mean is:
+
+
+```r
+echo = TRUE 
+mean_summary_data <- mean(summary_data, trim = 0) 
+mean_summary_data <- round(mean_summary_data, digits = 2)
+mean_summary_data
+```
+
+```
+## [1] 9354.23
+```
+
+The median is:
+
+
+```r
+echo = TRUE 
+median_summary_data <- median(summary_data, trim = 0) 
+median_summary_data <- round(median_summary_data, digits = 2)
+median_summary_data
+```
+
+```
+## [1] 10395
+```
+
+## What is the average daily activity pattern?
+
+
+```r
+## What is the average daily activity pattern?
+
+echo = TRUE
+steps_interval_data <- aggregate(steps ~ interval, activity_data, mean)
+plot(steps_interval_data$interval,steps_interval_data$steps, type="l", xlab = "Interval", ylab = "Steps", col= "blue")
+```
+
+<img src="PA1_template_files/figure-html/unnamed-chunk-5-1.png" width="672" />
+
+## Imputing missing values
+
+The number of records with missing steps:
+
+
+```r
+## Imputing missing values
+
+echo = TRUE 
+na_activity_data <- !complete.cases(activity_data)
+sum_na_activity_data <- sum(na_activity_data)
+sum_na_activity_data
+```
+
+```
+## [1] 2304
+```
+
+Imput the missing values based interval:
+
+
+```r
+echo = TRUE 
+loop_count <- 1
+num_records <- nrow(activity_data)
+num_records
+```
+
+```
+## [1] 17568
+```
+
+```r
+no_na_activity_data <- activity_data
+
+
+while (loop_count <= num_records) {
+  
+ steps <- activity_data$steps[loop_count]
+
+ if(is.na(steps)) {
+
+   interval_mean <- subset(steps_interval_data, interval == activity_data$interval[loop_count])  
+   no_na_activity_data$steps[loop_count] <- round(interval_mean$steps)
+ }
+   
+ loop_count <- loop_count +1
+ 
+}
+```
+
+Verify that there are no missing values in the new data set: 
+
+
+```r
+## This is to verify there are no missing values for steps
+
+echo = TRUE 
+na_activity_data2 <- !complete.cases(no_na_activity_data)
+sum_na_activity_data2 <- sum(na_activity_data2)
+sum_na_activity_data2
+```
+
+```
+## [1] 0
+```
+
+
+
+
+
+```r
+## Are there differences in activity patterns between weekdays and weekends?
+
+echo = TRUE 
+
+no_na_summary_data <- tapply(no_na_activity_data$steps, no_na_activity_data$date, sum)
+hist(no_na_summary_data, xlab = "Steps Per Day", main = "Histogram of Summarized Activity Data (no missing steps values)")
+```
+
+<img src="PA1_template_files/figure-html/unnamed-chunk-9-1.png" width="672" />
+
+```r
+# Mean with no missing steps values
+no_na_mean_summary_data <- mean(no_na_summary_data, trim = 0) 
+no_na_mean_summary_data <- round(no_na_mean_summary_data, digits = 2)
+no_na_mean_summary_data
+```
+
+```
+## [1] 10765.64
+```
+
+```r
+# Median with no missing steps values
+no_na_median_summary_data <- median(no_na_summary_data, trim = 0) 
+no_na_median_summary_data <- round(median_summary_data, digits = 2)
+no_na_median_summary_data
+```
+
+```
+## [1] 10395
+```
+
+Median difference:
+
+
+```r
+echo = TRUE 
+
+# Median Diff
+median_diff <- no_na_median_summary_data - median_summary_data
+median_diff
+```
+
+```
+## [1] 0
+```
+
+
+Mean difference:
+
+
+```r
+# Mean Diff
+mean_diff <- no_na_mean_summary_data - mean_summary_data
+mean_diff
+```
+
+```
+## [1] 1411.41
+```
+
+
+## Are there differences in activity patterns between weekdays and weekends?
+
+
+```r
+weekdays <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")
+              
+df_no_na_activity_data <- data.frame(no_na_activity_data)
+
+df_no_na_activity_data$day_of_week = as.factor(ifelse(is.element(weekdays(as.Date(df_no_na_activity_data $date)),weekdays), "Weekday", "Weekend"))
+
+agg_df_no_na_activity_data <- aggregate(steps ~ interval + day_of_week, df_no_na_activity_data, mean)
+
+library(lattice)
+xyplot(agg_df_no_na_activity_data$steps ~ agg_df_no_na_activity_data$interval|agg_df_no_na_activity_data$day_of_week, main="Average Steps per Day by Interval",xlab="Interval", ylab="Steps",layout=c(1,2), type="l")
+```
+
+<img src="PA1_template_files/figure-html/unnamed-chunk-12-1.png" width="672" />
+
